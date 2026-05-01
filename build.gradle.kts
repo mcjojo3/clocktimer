@@ -40,6 +40,14 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
 }
 
+tasks.withType<Jar> {
+    manifest {
+        attributes["Main-Class"] = "mc.sayda.clocktimer.Launcher"
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
 }

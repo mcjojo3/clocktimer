@@ -65,33 +65,35 @@ public class TimerApplication extends Application {
         statusLabel = new Label("Status: Ready");
 
         startButton.setOnAction(e -> {
+            // Toggle behavior: Stop if already running
             if (timeline != null && timeline.getStatus() == Timeline.Status.RUNNING) {
                 timeline.stop();
                 startButton.setText("Start Timer");
+                statusLabel.setText("Status: Stopped");
                 return;
             }
 
             try {
                 String input = timeField.getText().trim();
 
-                // If the user typed "12:22", turn it into "12:22:00"
-                if (input.length() == 5 && input.contains(":")) {
+                // Logic: If user typed HH:mm (5 chars), add the seconds automatically
+                if (input.matches("^\\d{1,2}:\\d{2}$")) {
                     input += ":00";
                 }
 
-                // Standardize the format for the parser
+                // Parse to LocalTime
                 LocalTime targetTime = LocalTime.parse(input, DateTimeFormatter.ofPattern("HH:mm:ss"));
 
-                statusLabel.setText("Waiting for " + input);
-                startButton.setText("Stop");
+                statusLabel.setText("Scheduled for: " + input);
+                startButton.setText("Cancel");
 
                 timeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
-                    // Check if current time (ignoring nanoseconds) matches target
+                    // We strip nanoseconds from 'now' to get a clean match with our target
                     if (LocalTime.now().withNano(0).equals(targetTime)) {
                         executeAction(keyRadio.isSelected(), keyField.getText(), mouseCombo.getValue());
                         timeline.stop();
                         startButton.setText("Start Timer");
-                        statusLabel.setText("Done!");
+                        statusLabel.setText("Action executed!");
                     }
                 }));
                 timeline.setCycleCount(Timeline.INDEFINITE);
