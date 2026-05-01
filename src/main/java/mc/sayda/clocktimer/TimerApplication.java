@@ -65,7 +65,6 @@ public class TimerApplication extends Application {
         statusLabel = new Label("Status: Ready");
 
         startButton.setOnAction(e -> {
-            // Toggle behavior: Stop if already running
             if (timeline != null && timeline.getStatus() == Timeline.Status.RUNNING) {
                 timeline.stop();
                 startButton.setText("Start Timer");
@@ -76,8 +75,14 @@ public class TimerApplication extends Application {
             try {
                 String input = timeField.getText().trim();
 
-                // Logic: If user typed HH:mm (5 chars), add the seconds automatically
-                if (input.matches("^\\d{1,2}:\\d{2}$")) {
+                // 1. Add a leading zero if the hour is a single digit (e.g., "3:21" -> "03:21")
+                // If the first colon is at index 1, it means there is only one number before it.
+                if (input.indexOf(":") == 1) {
+                    input = "0" + input;
+                }
+
+                // 2. Add seconds if they are missing (e.g., "03:21" -> "03:21:00")
+                if (input.matches("^\\d{2}:\\d{2}$")) {
                     input += ":00";
                 }
 
@@ -88,7 +93,6 @@ public class TimerApplication extends Application {
                 startButton.setText("Cancel");
 
                 timeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
-                    // We strip nanoseconds from 'now' to get a clean match with our target
                     if (LocalTime.now().withNano(0).equals(targetTime)) {
                         executeAction(keyRadio.isSelected(), keyField.getText(), mouseCombo.getValue());
                         timeline.stop();
