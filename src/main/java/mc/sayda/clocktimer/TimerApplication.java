@@ -72,11 +72,21 @@ public class TimerApplication extends Application {
             }
 
             try {
-                LocalTime targetTime = LocalTime.parse(timeField.getText(), DateTimeFormatter.ofPattern("HH:mm:ss"));
-                statusLabel.setText("Waiting for " + timeField.getText());
+                String input = timeField.getText().trim();
+
+                // If the user typed "12:22", turn it into "12:22:00"
+                if (input.length() == 5 && input.contains(":")) {
+                    input += ":00";
+                }
+
+                // Standardize the format for the parser
+                LocalTime targetTime = LocalTime.parse(input, DateTimeFormatter.ofPattern("HH:mm:ss"));
+
+                statusLabel.setText("Waiting for " + input);
                 startButton.setText("Stop");
 
                 timeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
+                    // Check if current time (ignoring nanoseconds) matches target
                     if (LocalTime.now().withNano(0).equals(targetTime)) {
                         executeAction(keyRadio.isSelected(), keyField.getText(), mouseCombo.getValue());
                         timeline.stop();
@@ -86,8 +96,9 @@ public class TimerApplication extends Application {
                 }));
                 timeline.setCycleCount(Timeline.INDEFINITE);
                 timeline.play();
+
             } catch (DateTimeParseException ex) {
-                statusLabel.setText("Error: Use HH:mm:ss");
+                statusLabel.setText("Error: Use HH:mm or HH:mm:ss");
             }
         });
 
